@@ -26,7 +26,7 @@ namespace FuncionarioCadastro.Data
         {
             // PK
             modelBuilder.Entity<Funcionario>().HasKey(x => x.Id);
-            modelBuilder.Entity<FuncionarioCNH>().HasKey(x => x.Id);
+            modelBuilder.Entity<FuncionarioCNH>().HasKey(x => x.IdFuncionario);
             modelBuilder.Entity<FuncionarioCTPS>().HasKey(x => x.IdFuncionario);
             modelBuilder.Entity<FuncionarioCurso>().HasKey(x => x.Id);
             modelBuilder.Entity<FuncionarioEndereco>().HasKey(x => x.Id);
@@ -52,6 +52,23 @@ namespace FuncionarioCadastro.Data
                 .HasMany(f => f.Endereco)
                 .WithOne(c => c.Funcionario)
                 .HasForeignKey(c => c.IdFuncionario);
+
+            // força o Banco de Dados a usar DATE
+            modelBuilder.Entity<Funcionario>()
+                .Property(f => f.DataNascimento)
+                .HasColumnType("date");
+
+            modelBuilder.Entity<FuncionarioCNH>()
+                .Property(f => f.DataEmissao)
+                .HasColumnType("date");
+
+            modelBuilder.Entity<FuncionarioCNH>()
+                .Property(f => f.Validade)
+                .HasColumnType("date");
+
+            modelBuilder.Entity<FuncionarioCTPS>()
+                .Property(f => f.DataEmissao)
+                .HasColumnType("date");
         }
 
     }

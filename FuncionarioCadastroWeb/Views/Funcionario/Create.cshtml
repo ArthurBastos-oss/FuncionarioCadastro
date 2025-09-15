@@ -1,0 +1,64 @@
+﻿@using FuncionarioCadastroWeb.ViewModels
+@model FuncionarioViewModel
+
+@{
+    ViewData["Title"] = "Cadastro de Funcionários";
+}
+
+<h1>Cadastro de Funcionários</h1>
+
+<form asp-action="Create" method="post">
+    <!-- Dados do Funcionario -->
+    <input asp-for="Nome" placeholder="Nome Completo" />
+    <input asp-for="CPF" id="CPF" placeholder="CPF" />
+    <input asp-for="DataNascimento" type="date" placeholder="Data de Nascimento" />
+    <select asp-for="UF" asp-items="ViewBag.UFs"></select>
+    <input asp-for="Profissao" placeholder="Profissão" />
+
+    <!-- CNH -->
+    <h3>CNH</h3>
+    <input asp-for="CNH.CNH" placeholder="CNH" />
+    <select asp-for="CNH.Categoria" multiple asp-items="ViewBag.CNHCategorias"></select>
+    <input asp-for="CNH.DataEmissao" type="date" placeholder="Data de Emissão" />
+    <input asp-for="CNH.Validade" type="date" placeholder="Data de Validade" />
+
+    <!-- CTPS -->
+    <h3>CTPS</h3>
+    <input asp-for="CTPS.CTPS" id="CTPS" />
+    <select asp-for="CTPS.Tipo" id="CTPS-Tipo" asp-items="ViewBag.CTPSTipo"></select>
+    <input asp-for="CTPS.DataEmissao" type="date" />
+
+    <!-- Cursos -->
+    <h3>Cursos</h3>
+    <div id="cursos-container">
+        <div class="curso-item">
+            <input name="Curso[0].Curso" placeholder="Nome do curso" />
+            <select name="Curso[0].TipoCurso" asp-items="ViewBag.TipoCurso"></select>
+            <button type="button" onclick="removeItem(this, 'cursos')">Remover</button>
+        </div>
+    </div>
+    <button type="button" onclick="addCurso()">Adicionar Curso</button>
+
+    <!-- Endereços -->
+    <h3>Endereços</h3>
+    <div id="enderecos-container">
+        <div class="endereco-item">
+            <input name="Endereco[0].Cidade" placeholder="Cidade" />
+            <input name="Endereco[0].Bairro" placeholder="Bairro" />
+            <input name="Endereco[0].Logradouro" placeholder="Logradouro" />
+            <input name="Endereco[0].Numero" placeholder="Número" />
+            <input name="Endereco[0].Complemento" placeholder="Complemento" />
+            <input name="Endereco[0].CEP" id="CEP" placeholder="CEP" />
+            <button type="button" onclick="removeItem(this, 'enderecos')">Remover</button>
+        </div>
+    </div>
+    <button type="button" onclick="addEndereco()">Adicionar Endereço</button>
+
+    <br /><br />
+    <button type="submit">Salvar</button>
+</form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+<script src="~/js/mascara.js"></script>
+<script src="~/js/cursoEndereco.js"></script>

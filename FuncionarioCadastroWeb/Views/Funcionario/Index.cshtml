@@ -19,10 +19,10 @@
             <th>Data de Nascimento</th>
             <th>Profissão</th>
             <th>UF</th>
-            <th>CNH</th>
+            @* <th>CNH</th>
             <th>CTPS</th>
             <th>Cursos</th>
-            <th>Endereços</th>
+            <th>Endereços</th> *@
             <th>Ações</th>
         </tr>
     </thead>
@@ -35,7 +35,7 @@
                 <td>@f.DataNascimento.ToShortDateString()</td>
                 <td>@f.Profissao</td>
                 <td>@f.UF</td>
-                <td>
+                @* <td>
                     @if (f.CNH != null)
                     {
                         @($"{f.CNH.CNH} - {f.CNH.Categoria}")
@@ -68,7 +68,7 @@
                             }
                         </ul>
                     }
-                </td>
+                </td> *@
                 <td>
                     <a asp-action="Edit" asp-route-id="@f.Id" class="btn btn-sm btn-warning">Editar</a>
                     <a asp-action="Details" asp-route-id="@f.Id" class="btn btn-sm btn-info">Detalhes</a>

@@ -6,6 +6,6 @@
         public int IdFuncionario { get; set; }
         public string Curso { get; set; }
         public string TipoCurso { get; set; }
-        public FuncionarioViewModel Funcionario { get; set; }
+        //public FuncionarioViewModel Funcionario { get; set; }
     }
 }

@@ -2,7 +2,6 @@
 {
     public class FuncionarioCNH
     {
-        public int Id { get; set; }
         public int IdFuncionario { get; set; }
         public string CNH { get; set; }
         public string Categoria { get; set; }

@@ -8,10 +8,8 @@ namespace FuncionarioCadastroWeb.ViewModels
         {
             CNH = new FuncionarioCNHViewModel();
             CTPS = new FuncionarioCTPSViewModel();
-            //Curso = new FuncionarioCursoViewModel();
-            //Endereco = new FuncionarioEnderecoViewModel();
         }
-        public string Id { get; set; }
+        public int Id { get; set; }
         public string Nome { get; set; }
         public DateTime DataNascimento { get; set; }
         public string CPF { get; set; }

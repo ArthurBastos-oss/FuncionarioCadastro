@@ -10,6 +10,6 @@
         public string Numero { get; set; }
         public string Complemento { get; set; }
         public string CEP { get; set; }
-        public FuncionarioViewModel Funcionario { get; set; }
+        //public FuncionarioViewModel Funcionario { get; set; }
     }
 }
