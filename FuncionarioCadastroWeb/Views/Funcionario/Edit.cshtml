@@ -7,92 +7,193 @@
 
 <h1>Editar Funcionário</h1>
 
-<form asp-action="Edit" method="post">
+<form asp-action="Edit" method="post" class="mt-3">
     <input type="hidden" asp-for="Id" />
 
     <!-- Dados do Funcionario -->
-    <input asp-for="Nome" placeholder="Nome Completo" />
-    <input asp-for="CPF" id="CPF" placeholder="CPF" />
-    <input asp-for="DataNascimento" type="date" placeholder="Data de Nascimento" />
-    <select asp-for="UF" asp-items="ViewBag.UFs"></select>
-    <input asp-for="Profissao" placeholder="Profissão" />
+    <div class="mb-3">
+        <label asp-for="Nome" class="form-label"></label>
+        <input asp-for="Nome" class="form-control" placeholder="Nome Completo" />
+        <span asp-validation-for="Nome" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="CPF" class="form-label"></label>
+        <input asp-for="CPF" id="CPF" class="form-control" placeholder="CPF" />
+        <span asp-validation-for="CPF" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DataNascimento" class="form-label">Data de Nascimento</label>
+        <input asp-for="DataNascimento"
+               type="date"
+               class="form-control"
+               value="@( (Model?.DataNascimento != null && Model.DataNascimento != DateTime.MinValue)
+                                               ? Model.DataNascimento.ToString("yyyy-MM-dd")
+                                               : "" )" />
+        <span asp-validation-for="DataNascimento" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="UF" class="form-label"></label>
+        <select asp-for="UF" asp-items="ViewBag.UFs" class="form-select"></select>
+        <span asp-validation-for="UF" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Profissao" class="form-label">Profissão</label>
+        <input asp-for="Profissao" class="form-control" placeholder="Profissão" />
+        <span asp-validation-for="Profissao" class="text-danger"></span>
+    </div>
 
     <!-- CNH -->
     <h3>CNH</h3>
-    <input asp-for="CNH.CNH" placeholder="CNH" />
-    <select asp-for="CNH.Categoria" multiple asp-items="ViewBag.CNHCategorias"></select>
-    <input asp-for="CNH.DataEmissao" type="date" placeholder="Data de Emissão" />
-    <input asp-for="CNH.Validade" type="date" placeholder="Data de Validade" />
+    <div class="mb-3">
+        <label asp-for="CNH.CNH" class="form-label"></label>
+        <input asp-for="CNH.CNH" id="CNH" class="form-control" placeholder="CNH" />
+        <span asp-validation-for="CNH.CNH" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="CNH.DataEmissao" class="form-label">Data de Emissão</label>
+        <input asp-for="CNH.DataEmissao" type="date" class="form-control" />
+        <span asp-validation-for="CNH.DataEmissao" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="CNH.Validade" class="form-label"></label>
+        <input asp-for="CNH.Validade" type="date" class="form-control" />
+        <span asp-validation-for="CNH.Validade" class="text-danger"></span>
+    </div>
+
+    <div id="categorias-container" class="mb-3">
+        <label class="form-label">Categorias</label>
+        @if (Model.CNH?.Categoria != null && Model.CNH.Categoria.Length > 0)
+        {
+            for (int i = 0; i < Model.CNH.Categoria.Length; i++)
+            {
+                <div class="categoria-item d-flex gap-2 mb-2">
+                    <select asp-for="CNH.Categoria[i]" asp-items="ViewBag.CNHCategorias" class="form-select"></select>
+                    <button type="button" class="btn btn-danger" onclick="removeItem(this, 'categorias')">Remover</button>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="categoria-item d-flex gap-2 mb-2">
+                <select asp-for="CNH.Categoria[0]" asp-items="ViewBag.CNHCategorias" class="form-select"></select>
+                <button type="button" class="btn btn-danger" onclick="removeItem(this, 'categorias')">Remover</button>
+            </div>
+        }
+    </div>
+    <button type="button" class="btn btn-primary mb-3" onclick="addCategoria()">Adicionar Categoria</button>
 
     <!-- CTPS -->
     <h3>CTPS</h3>
-    <input asp-for="CTPS.CTPS" id="CTPS" />
-    <select asp-for="CTPS.Tipo" id="CTPS-Tipo" asp-items="ViewBag.CTPSTipo"></select>
-    <input asp-for="CTPS.DataEmissao" type="date" />
+    <div class="mb-3">
+        <label asp-for="CTPS.CTPS" class="form-label"></label>
+        <input asp-for="CTPS.CTPS" id="CTPS" class="form-control" />
+        <span asp-validation-for="CTPS.CTPS" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="CTPS.Tipo" class="form-label">Tipo de Documento</label>
+        <select asp-for="CTPS.Tipo" id="CTPS-Tipo" asp-items="ViewBag.CTPSTipo" class="form-select"></select>
+        <span asp-validation-for="CTPS.Tipo" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="CTPS.DataEmissao" class="form-label">Data de Emissão</label>
+        <input asp-for="CTPS.DataEmissao"
+               type="date"
+               class="form-control"
+               value="@( (Model?.CTPS?.DataEmissao != null && Model.CTPS.DataEmissao != DateTime.MinValue)
+                                               ? Model.CTPS.DataEmissao.ToString("yyyy-MM-dd")
+                                               : "" )" />
+        <span asp-validation-for="CTPS.DataEmissao" class="text-danger"></span>
+    </div>
 
     <!-- Cursos -->
     <h3>Cursos</h3>
-    <div id="cursos-container">
+    <div id="cursos-container" class="mb-3">
         @if (Model.Curso.Count == 0)
         {
-            <div class="curso-item">
-                <input name="Curso[0].Curso" placeholder="Nome do curso" />
-                <select name="Curso[0].TipoCurso" asp-items="ViewBag.TipoCurso"></select>
-                <button type="button" onclick="removeItem(this, 'cursos')">Remover</button>
+            <div class="curso-item d-flex gap-2 mb-2">
+                <div class="mb-2">
+                    <input name="Curso[0].Curso" placeholder="Nome do curso" class="form-control" />
+                    <span asp-validation-for="Curso[0].Curso" class="text-danger"></span>
+                </div>
+
+                <div class="mb-2">
+                    <select name="Curso[0].TipoCurso" asp-items="ViewBag.TipoCurso" class="form-select"></select>
+                    <span asp-validation-for="Curso[0].TipoCurso" class="text-danger"></span>
+                </div>
+
+                <button type="button" class="btn btn-danger h-100" onclick="removeItem(this, 'cursos')">Remover</button>
+                
             </div>
         }
         else
         {
             @for (int i = 0; i < Model.Curso.Count; i++)
             {
-                <div class="curso-item">
-                    <input name="Curso[@i].Curso" value="@Model.Curso[i].Curso" placeholder="Nome do curso" />
-                    <select name="Curso[@i].TipoCurso" asp-items="ViewBag.TipoCurso" asp-for="Curso[@i].TipoCurso"></select>
-                    <button type="button" onclick="removeItem(this, 'cursos')">Remover</button>
+                <div class="curso-item d-flex gap-2 mb-2">
+                    <div class="mb-2">
+                        <input name="Curso[@i].Curso" value="@Model.Curso[i].Curso" placeholder="Nome do curso" class="form-control" />
+                        <span asp-validation-for="Curso[@i].Curso" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-2">
+                        <select name="Curso[@i].TipoCurso" asp-items="ViewBag.TipoCurso" asp-for="Curso[@i].TipoCurso" class="form-select"></select>
+                        <span asp-validation-for="Curso[@i].TipoCurso" class="text-danger"></span>
+                    </div>
+
+                    <button type="button" class="btn btn-danger h-100" onclick="removeItem(this, 'cursos')">Remover</button>
+                    
                 </div>
             }
         }
     </div>
-    <button type="button" onclick="addCurso()">Adicionar Curso</button>
+    <button type="button" class="btn btn-primary mb-3" onclick="addCurso()">Adicionar Curso</button>
 
     <!-- Endereços -->
     <h3>Endereços</h3>
-    <div id="enderecos-container">
+    <div id="enderecos-container" class="mb-3">
         @if (Model.Endereco.Count == 0)
         {
-            <div class="endereco-item">
-                <input name="Endereco[0].Cidade" placeholder="Cidade" />
-                <input name="Endereco[0].Bairro" placeholder="Bairro" />
-                <input name="Endereco[0].Logradouro" placeholder="Logradouro" />
-                <input name="Endereco[0].Numero" placeholder="Número" />
-                <input name="Endereco[0].Complemento" placeholder="Complemento" />
-                <input name="Endereco[0].CEP" id="CEP" placeholder="CEP" />
-                <button type="button" onclick="removeItem(this, 'enderecos')">Remover</button>
+            <div class="endereco-item d-flex flex-wrap gap-2 mb-2">
+                <input name="Endereco[0].Cidade" placeholder="Cidade" class="form-control" />
+                <input name="Endereco[0].Bairro" placeholder="Bairro" class="form-control" />
+                <input name="Endereco[0].Logradouro" placeholder="Logradouro" class="form-control" />
+                <input name="Endereco[0].Numero" placeholder="Número" class="form-control" />
+                <input name="Endereco[0].Complemento" placeholder="Complemento" class="form-control" />
+                <input name="Endereco[0].CEP" placeholder="CEP" class="form-control" />
+                <button type="button" class="btn btn-danger" onclick="removeItem(this, 'enderecos')">Remover</button>
             </div>
         }
         else
         {
             @for (int i = 0; i < Model.Endereco.Count; i++)
             {
-                <div class="endereco-item">
-                    <input name="Endereco[@i].Cidade" value="@Model.Endereco[i].Cidade" placeholder="Cidade" />
-                    <input name="Endereco[@i].Bairro" value="@Model.Endereco[i].Bairro" placeholder="Bairro" />
-                    <input name="Endereco[@i].Logradouro" value="@Model.Endereco[i].Logradouro" placeholder="Logradouro" />
-                    <input name="Endereco[@i].Numero" value="@Model.Endereco[i].Numero" placeholder="Número" />
-                    <input name="Endereco[@i].Complemento" value="@Model.Endereco[i].Complemento" placeholder="Complemento" />
-                    <input name="Endereco[@i].CEP" value="@Model.Endereco[i].CEP" placeholder="CEP" />
-                    <button type="button" onclick="removeItem(this, 'enderecos')">Remover</button>
+                <div class="endereco-item d-flex flex-wrap gap-2 mb-2">
+                    <input name="Endereco[@i].Cidade" value="@Model.Endereco[i].Cidade" placeholder="Cidade" class="form-control" />
+                    <input name="Endereco[@i].Bairro" value="@Model.Endereco[i].Bairro" placeholder="Bairro" class="form-control" />
+                    <input name="Endereco[@i].Logradouro" value="@Model.Endereco[i].Logradouro" placeholder="Logradouro" class="form-control" />
+                    <input name="Endereco[@i].Numero" value="@Model.Endereco[i].Numero" placeholder="Número" class="form-control" />
+                    <input name="Endereco[@i].Complemento" value="@Model.Endereco[i].Complemento" placeholder="Complemento" class="form-control" />
+                    <input name="Endereco[@i].CEP" value="@Model.Endereco[i].CEP" placeholder="CEP" class="form-control" />
+                    <button type="button" class="btn btn-danger" onclick="removeItem(this, 'enderecos')">Remover</button>
                 </div>
             }
         }
     </div>
-    <button type="button" onclick="addEndereco()">Adicionar Endereço</button>
+    <button type="button" class="btn btn-primary mb-3" onclick="addEndereco()">Adicionar Endereço</button>
 
-    <br /><br />
-    <button type="submit">Salvar</button>
+    <br />
+    <button type="submit" class="btn btn-success">Salvar</button>
+    <a asp-action="Index" class="btn btn-secondary">Voltar</a>
 </form>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
-<script src="~/js/mascara.js"></script>
-<script src="~/js/cursoEndereco.js"></script>
+<script src="~/js/cadastro.js"></script>

@@ -1,0 +1,119 @@
+﻿@using FuncionarioCadastroWeb.ViewModels
+@model FuncionarioViewModel
+
+@{
+    ViewData["Title"] = "Deletar Funcionário";
+}
+
+<h1>Deletar Funcionário</h1>
+
+<form asp-action="Delete" method="post" novalidate>
+    <input type="hidden" asp-for="Id" />
+
+    <div class="form-group">
+        <label><strong>Id:</strong></label>
+        <p>@Model.Id</p>
+    </div>
+
+    <div class="form-group">
+        <label><strong>Nome:</strong></label>
+        <p>@Model.Nome</p>
+    </div>
+
+    <div class="form-group">
+        <label><strong>CPF:</strong></label>
+        <p>@Model.CPF</p>
+    </div>
+
+    <div class="form-group">
+        <label><strong>Data de Nascimento:</strong></label>
+        <p>@Model.DataNascimento.ToString("dd/MM/yyyy")</p>
+    </div>
+
+    <div class="form-group">
+        <label><strong>UF:</strong></label>
+        <p>@Model.UF</p>
+    </div>
+
+    <div class="form-group">
+        <label><strong>Profissão:</strong></label>
+        <p>@Model.Profissao</p>
+    </div>
+
+    @if (Model.CNH != null)
+    {
+        <h3>CNH</h3>
+        <div class="form-group">
+            <label><strong>Número:</strong></label>
+            <p>@Model.CNH.CNH</p>
+        </div>
+        <div class="form-group">
+            <label><strong>Categorias:</strong></label>
+            <p>
+                @(Model.CNH.Categoria != null && Model.CNH.Categoria.Any()
+                            ? string.Join(", ", Model.CNH.Categoria)
+                            : "Não informado")
+        </p>
+    </div>
+    <div class="form-group">
+        <label><strong>Data de Emissão:</strong></label>
+        <p>@Model.CNH.DataEmissao?.ToString("dd/MM/yyyy")</p>
+    </div>
+    <div class="form-group">
+        <label><strong>Validade:</strong></label>
+        <p>@Model.CNH.Validade?.ToString("dd/MM/yyyy")</p>
+    </div>
+        }
+
+    <h3>CTPS</h3>
+    <div class="form-group">
+        <label><strong>Número:</strong></label>
+        <p>@Model.CTPS.CTPS</p>
+    </div>
+    <div class="form-group">
+        <label><strong>Tipo:</strong></label>
+        <p>@Model.CTPS.Tipo</p>
+    </div>
+    <div class="form-group">
+        <label><strong>Data de Emissão:</strong></label>
+        <p>@Model.CTPS.DataEmissao.ToString("dd/MM/yyyy")</p>
+    </div>
+
+    <h3>Cursos</h3>
+    @if (Model.Curso != null && Model.Curso.Count > 0)
+    {
+        <ul>
+            @foreach (var curso in Model.Curso)
+            {
+                <li>@curso.Curso (@curso.TipoCurso)</li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p>Nenhum curso informado.</p>
+    }
+
+    <h3>Endereços</h3>
+    @if (Model.Endereco != null && Model.Endereco.Count > 0)
+    {
+        <ul>
+            @foreach (var e in Model.Endereco)
+            {
+                <li>
+                    @e.Logradouro, @e.Numero
+                    @(string.IsNullOrEmpty(e.Complemento) ? "" : $" ({e.Complemento})")
+                    - @e.Bairro, @e.Cidade - @e.CEP
+                </li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p>Nenhum endereço informado.</p>
+    }
+
+    <br />
+    <button type="submit" class="btn btn-danger">Deletar</button>
+    <a asp-action="Index" class="btn btn-secondary">Voltar</a>
+</form>
