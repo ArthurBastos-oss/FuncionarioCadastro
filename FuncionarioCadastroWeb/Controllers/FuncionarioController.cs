@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace FuncionarioCadastroWeb.Controllers
@@ -24,27 +26,22 @@ namespace FuncionarioCadastroWeb.Controllers
         public async Task<IActionResult> Index(string searchNome, string searchCPF, string searchProfissao, string searchUF)
         {
 
-            //        var FabioBastos = await _context.Funcionario
-            //.FromSqlRaw(@"
-            //    SELECT f.*, c.* 
-            //    FROM ""Funcionario"" AS f
-            //    INNER JOIN ""FuncionarioCNH"" as c 
-            //        ON f.""Id"" = c.""IdFuncionario""
-            //    WHERE f.""Id"" = 3;")
-            //.ToListAsync();
+            //var query = await _context.Funcionario
+            //    .FromSqlRaw(@"
+            //    SELECT f.* FROM ""Funcionario"" AS f;
+            //").ToListAsync();
 
-            var query = _context.Funcionario
-             .Include(f => f.CNH)
-             .Include(f => f.CTPS)
-             .Include(f => f.Endereco)
-             .Include(f => f.Curso)
-             .AsQueryable();
+            var query = _context.Funcionario.AsQueryable();
 
             // Filtro por nome
             if (!string.IsNullOrWhiteSpace(searchNome))
                 {
                 query = query.Where(f => f.Nome.ToUpper().Contains(searchNome.ToUpper()));
             }
+            //var searchNome = await _context.Funcionario
+            //    .FromSqlRaw(@"
+            // WHERE UPPER(f."Nome") LIKE '%' || UPPER(searchNome) || '%'
+            //").ToListAsync();
 
             // Filtro por CPF (sem mascara)
             if (!string.IsNullOrWhiteSpace(searchCPF))
@@ -52,18 +49,30 @@ namespace FuncionarioCadastroWeb.Controllers
                 var cpfSemMascara = searchCPF.Replace(".", "").Replace("-", "");
                 query = query.Where(f => f.CPF.Contains(cpfSemMascara));
             }
+            //var searchCPF = await _context.Funcionario
+            //    .FromSqlRaw(@"
+            // WHERE f."CPF" LIKE '%' '%'
+            //").ToListAsync();
 
             // Filtro por profissão
             if (!string.IsNullOrWhiteSpace(searchProfissao))
             {
                 query = query.Where(f => f.Profissao.ToUpper().Contains(searchProfissao.ToUpper()));
             }
+            //var searchProfissao = await _context.Funcionario
+            //    .FromSqlRaw(@"
+            // WHERE UPPER(f."Profissao") LIKE '%' || UPPER(searchProfissao) || '%'
+            //").ToListAsync();
 
             // Filtro por UF
             if (!string.IsNullOrWhiteSpace(searchUF))
             {
                 query = query.Where(f => f.UF.ToUpper().Contains(searchUF.ToUpper()));
             }
+            //var searchUF = await _context.Funcionario
+            //    .FromSqlRaw(@"
+            // WHERE UPPER(f."UF") LIKE '%' || UPPER(searchUF) || '%'
+            //").ToListAsync();
 
             var funcionarios = await query.ToListAsync();
 
@@ -78,36 +87,6 @@ namespace FuncionarioCadastroWeb.Controllers
                 UF = f.UF,
                 Profissao = f.Profissao,
 
-                CNH = f.CNH != null ? new FuncionarioCNHViewModel
-                {
-                    CNH = f.CNH.CNH,
-                    Categoria = f.CNH.Categoria?.Split(','),
-                    DataEmissao = f.CNH.DataEmissao,
-                    Validade = f.CNH.Validade
-                } : null,
-
-                CTPS = f.CTPS != null ? new FuncionarioCTPSViewModel
-                {
-                    CTPS = SvcFormatacao.MascaraCTPS(f.CTPS.CTPS, f.CTPS.Tipo),
-                    Tipo = f.CTPS.Tipo,
-                    DataEmissao = f.CTPS.DataEmissao
-                } : null,
-
-                Curso = f.Curso.Select(c => new FuncionarioCursoViewModel
-                {
-                    Curso = c.Curso,
-                    TipoCurso = c.TipoCurso
-                }).ToList(),
-
-                Endereco = f.Endereco.Select(e => new FuncionarioEnderecoViewModel
-                {
-                    Cidade = e.Cidade,
-                    Bairro = e.Bairro,
-                    Logradouro = e.Logradouro,
-                    Numero = e.Numero,
-                    Complemento = e.Complemento,
-                    CEP = SvcFormatacao.MascaraCEP(e.CEP)
-                }).ToList()
 
             }).ToList();
 
@@ -141,8 +120,9 @@ namespace FuncionarioCadastroWeb.Controllers
 
         // POST Create
         [HttpPost]
-        public IActionResult Create(FuncionarioViewModel f)
+        public async Task<IActionResult> Create(FuncionarioViewModel f)
         {
+            var hoje = DateTime.Today;
 
             // Ignora validação de CNH se não preenchida
             if (string.IsNullOrEmpty(f.CNH?.CNH))
@@ -172,16 +152,42 @@ namespace FuncionarioCadastroWeb.Controllers
                     if (algumPreenchido && !todosPreenchidos)
                     {
                         ModelState.AddModelError("CNH", "Se algum campo da CNH for preenchido, todos os campos devem ser preenchidos.");
+
+                        if (f.CNH.DataEmissao == null)
+                            ModelState.AddModelError("CNH.DataEmissao", "A data de emissão da CNH não é válida.");
+
+                        if (f.CNH.Validade == null)
+                            ModelState.AddModelError("CNH.Validade", "A data de validade não é valida.");
+
+                        if (f.CNH.Categoria == null)
+                            ModelState.AddModelError("CNH.Categoria", "Pelo menos uma categoria deve ser selecionada");
+
+                        if (f.CNH.CNH == null)
+                            ModelState.AddModelError("CNH.CNH", "O número da CNH é necessário.");
+                        
                     }
                     else if (todosPreenchidos)
                     {
-                        var hoje = DateTime.Today;
-
                         if (f.CNH.DataEmissao > hoje)
                             ModelState.AddModelError("CNH.DataEmissao", "A data de emissão da CNH não é válida.");
 
                         if (f.CNH.Validade < hoje)
                             ModelState.AddModelError("CNH.Validade", "A validade da CNH já expirou.");
+
+                        if (f.CNH.CNH.Length < 11 || f.CNH.CNH.Distinct().Count() == 1)
+                        {
+                            ModelState.AddModelError("CNH.CNH", "O CNH informado não é válido.");
+                        }
+                        else
+                        {
+                            bool cnhExistente = await _context.Funcionario
+                            .AnyAsync(x => x.CNH.CNH == f.CNH.CNH && x.Id != f.Id);
+
+                            if (cnhExistente)
+                            {
+                                ModelState.AddModelError("CNH.CNH", "Está CNH já está cadastrado.");
+                            }
+                        }
                     }
                 }
 
@@ -221,14 +227,18 @@ namespace FuncionarioCadastroWeb.Controllers
             }
 
             // Validação Data de Nascimento
-            if (f.DataNascimento != null)
+            if (f.DataNascimento >= hoje || f.DataNascimento == null)
             {
-                var hoje = DateTime.Today;
+                if (f.DataNascimento == null)
+                {
+                    ModelState.AddModelError("DataNascimento", "A data de nascimento é obrigatoria");
+                }
 
-                if (f.DataNascimento > hoje)
+                else if (f.DataNascimento >= hoje)
                 {
                     ModelState.AddModelError("DataNascimento", "A data de nascimento não pode ser no futuro.");
                 }
+
             }
 
             // Validação de CPF
@@ -240,14 +250,15 @@ namespace FuncionarioCadastroWeb.Controllers
                 {
                     ModelState.AddModelError("CPF", "O CPF informado não é válido.");
                 }
-            }
-
-            // Validação de CNH
-            if (!string.IsNullOrWhiteSpace(f.CNH?.CNH))
-            {
-                if (SvcValidacao.ValidarCNH(f.CNH.CNH))
+                else
                 {
-                    ModelState.AddModelError("CNH.CNH", "O CNH informado não é válido.");
+                    bool cpfExistente = await _context.Funcionario
+                    .AnyAsync(x => x.CPF == cpfNumeros && x.Id != f.Id);
+
+                    if (cpfExistente)
+                    {
+                        ModelState.AddModelError("CPF", "Este CPF já está cadastrado.");
+                    }
                 }
             }
 
@@ -263,12 +274,47 @@ namespace FuncionarioCadastroWeb.Controllers
                     {
                         ModelState.AddModelError("CTPS.CTPS", "O CPF e o CTPS não correspondem.");
                     }
+                    else
+                    {
+                        bool ctpsExistente = await _context.Funcionario
+                        .AnyAsync(x => x.CTPS.CTPS == ctpsNumeros && x.Id != f.Id);
+
+                        if (ctpsExistente)
+                        {
+                            ModelState.AddModelError("CTPS.CTPS", "Este CTPS já está cadastrado.");
+                        }
+                    }
                 }
                 else if (f.CTPS.Tipo == "CTPS")
                 {
                     if (!SvcValidacao.ValidarCTPS(ctpsNumeros))
                     {
-                        ModelState.AddModelError("CTPS.CTPS", "O número da CTPS deve conter exatamente 11 dígitos numéricos.");
+                        ModelState.AddModelError("CTPS.CTPS", "O CTPS informado não é válido.");
+                    }
+                    else
+                    {
+                        bool ctpsExistente = await _context.Funcionario
+                        .AnyAsync(x => x.CTPS.CTPS == ctpsNumeros && x.Id != f.Id);
+
+                        if (ctpsExistente)
+                        {
+                            ModelState.AddModelError("CTPS.CTPS", "Este CPF já está cadastrado.");
+                        }
+                    }
+                }
+
+                if (f.CTPS.DataEmissao > hoje || f.CTPS.DataEmissao == null)
+                {
+                    ModelState.AddModelError("CTPS.DataEmissao", "A data de emissão do CTPS não é válida.");
+                    
+                    if (f.CTPS.DataEmissao == null)
+                    {
+                        ModelState.AddModelError("CTPS.DataEmissao", "A data de emissão do CTPS é obrigatório.");
+                    }
+
+                    else if (f.CTPS.DataEmissao > hoje)
+                    {
+                        ModelState.AddModelError("CTPS.DataEmissao", "A data de emissão do CTPS não é válida.");
                     }
                 }
             }
@@ -294,6 +340,7 @@ namespace FuncionarioCadastroWeb.Controllers
 
 
             if (!ModelState.IsValid)
+            { 
 
             ViewBag.UFs = SvcSelectList.GetUFs(f.UF);
             ViewBag.CTPSTipo = SvcSelectList.GetCTPSTipo(f?.CTPS?.Tipo);
@@ -301,14 +348,14 @@ namespace FuncionarioCadastroWeb.Controllers
             ViewBag.CNHCategorias = SvcSelectList.GetCNHCategorias(f?.CNH?.Categoria?.FirstOrDefault());
 
             return View(f);
-
+            }
             // Mapeamento ViewModel → Model
             var funcionario = new Funcionario
             {
                 Id = f.Id ?? 0,
                 Nome = f.Nome,
                 CPF = SvcFormatacao.RemoverMascara(f.CPF),
-                DataNascimento = f.DataNascimento,
+                DataNascimento = f.DataNascimento.Value,
                 UF = f.UF,
                 Profissao = f.Profissao,
                 CNH = !string.IsNullOrEmpty(f.CNH?.CNH) ? new FuncionarioCNH
@@ -322,7 +369,7 @@ namespace FuncionarioCadastroWeb.Controllers
                 {
                     CTPS = SvcFormatacao.RemoverMascara(f.CTPS.CTPS),
                     Tipo = f.CTPS.Tipo,
-                    DataEmissao = f.CTPS.DataEmissao
+                    DataEmissao = f.CTPS.DataEmissao.Value
                 },
                 Curso = f.Curso.Select(c => new FuncionarioCurso
                 {
@@ -358,11 +405,27 @@ namespace FuncionarioCadastroWeb.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             var f = await _context.Funcionario
-        .Include(f => f.CNH)
-        .Include(f => f.CTPS)
-        .Include(f => f.Curso)
-        .Include(f => f.Endereco)
-        .FirstOrDefaultAsync(f => f.Id == id);
+            .Include(f => f.CNH)
+            .Include(f => f.CTPS)
+            .Include(f => f.Curso)
+            .Include(f => f.Endereco)
+            .FirstOrDefaultAsync(f => f.Id == id);
+
+            //var f = await _context.Funcionario
+            //    .FromSqlRaw(@"
+            //SELECT f.*, cnh.*, ctps.*, cu.*, e.*
+            //FROM "Funcionario" AS f
+            //LEFT JOIN "FuncionarioCNH" AS cnh
+            //    ON f."Id" = cnh."IdFuncionario"
+            //LEFT JOIN "FuncionarioCTPS" AS ctps
+            //    ON f."Id" = ctps."IdFuncionario"
+            //LEFT JOIN "Curso" AS cu
+            //    ON f."IdCurso" = cu."Id"
+            //LEFT JOIN "Endereco" AS e
+            //    ON f."IdEndereco" = e."Id"
+            //WHERE f."Id" = @id
+            //LIMIT 1;
+            //").ToListAsync();
 
             if (f == null)
                 return NotFound();
@@ -421,6 +484,7 @@ namespace FuncionarioCadastroWeb.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(int id, FuncionarioViewModel f)
         {
+            var hoje = DateTime.Today;
             // Ignora validação de CNH se não preenchida
             if (string.IsNullOrEmpty(f.CNH?.CNH))
             {
@@ -449,16 +513,42 @@ namespace FuncionarioCadastroWeb.Controllers
                     if (algumPreenchido && !todosPreenchidos)
                     {
                         ModelState.AddModelError("CNH", "Se algum campo da CNH for preenchido, todos os campos devem ser preenchidos.");
+
+                        if (f.CNH.DataEmissao == null)
+                            ModelState.AddModelError("CNH.DataEmissao", "A data de emissão da CNH não é válida.");
+
+                        if (f.CNH.Validade == null)
+                            ModelState.AddModelError("CNH.Validade", "A data de validade não é valida.");
+
+                        if (f.CNH.Categoria == null)
+                            ModelState.AddModelError("CNH.Categoria", "Pelo menos uma categoria deve ser selecionada");
+
+                        if (f.CNH.CNH == null)
+                            ModelState.AddModelError("CNH.CNH", "O número da CNH é necessário.");
+
                     }
                     else if (todosPreenchidos)
                     {
-                        var hoje = DateTime.Today;
-
                         if (f.CNH.DataEmissao > hoje)
                             ModelState.AddModelError("CNH.DataEmissao", "A data de emissão da CNH não é válida.");
 
                         if (f.CNH.Validade < hoje)
                             ModelState.AddModelError("CNH.Validade", "A validade da CNH já expirou.");
+
+                        if (f.CNH.CNH.Length < 11 || f.CNH.CNH.Distinct().Count() == 1)
+                        {
+                            ModelState.AddModelError("CNH.CNH", "O CNH informado não é válido.");
+                        }
+                        else
+                        {
+                            bool cnhExistente = await _context.Funcionario
+                            .AnyAsync(x => x.CNH.CNH == f.CNH.CNH && x.Id != f.Id);
+
+                            if (cnhExistente)
+                            {
+                                ModelState.AddModelError("CNH.CNH", "Está CNH já está cadastrado.");
+                            }
+                        }
                     }
                 }
 
@@ -498,14 +588,18 @@ namespace FuncionarioCadastroWeb.Controllers
             }
 
             // Validação Data de Nascimento
-            if (f.DataNascimento != null)
+            if (f.DataNascimento >= hoje || f.DataNascimento == null)
             {
-                var hoje = DateTime.Today;
+                if (f.DataNascimento == null)
+                {
+                    ModelState.AddModelError("DataNascimento", "A data de nascimento é obrigatoria");
+                }
 
-                if (f.DataNascimento > hoje)
+                else if (f.DataNascimento >= hoje)
                 {
                     ModelState.AddModelError("DataNascimento", "A data de nascimento não pode ser no futuro.");
                 }
+
             }
 
             // Validação de CPF
@@ -517,14 +611,15 @@ namespace FuncionarioCadastroWeb.Controllers
                 {
                     ModelState.AddModelError("CPF", "O CPF informado não é válido.");
                 }
-            }
-
-            // Validação de CNH
-            if (!string.IsNullOrWhiteSpace(f.CNH?.CNH))
-            {
-                if (SvcValidacao.ValidarCNH(f.CNH.CNH))
+                else
                 {
-                    ModelState.AddModelError("CNH.CNH", "O CNH informado não é válido.");
+                    bool cpfExistente = await _context.Funcionario
+                    .AnyAsync(x => x.CPF == cpfNumeros && x.Id != f.Id);
+
+                    if (cpfExistente)
+                    {
+                        ModelState.AddModelError("CPF", "Este CPF já está cadastrado.");
+                    }
                 }
             }
 
@@ -540,12 +635,47 @@ namespace FuncionarioCadastroWeb.Controllers
                     {
                         ModelState.AddModelError("CTPS.CTPS", "O CPF e o CTPS não correspondem.");
                     }
+                    else
+                    {
+                        bool ctpsExistente = await _context.Funcionario
+                        .AnyAsync(x => x.CTPS.CTPS == ctpsNumeros && x.Id != f.Id);
+
+                        if (ctpsExistente)
+                        {
+                            ModelState.AddModelError("CTPS.CTPS", "Este CTPS já está cadastrado.");
+                        }
+                    }
                 }
                 else if (f.CTPS.Tipo == "CTPS")
                 {
                     if (!SvcValidacao.ValidarCTPS(ctpsNumeros))
                     {
-                        ModelState.AddModelError("CTPS.CTPS", "O número da CTPS deve conter exatamente 11 dígitos numéricos.");
+                        ModelState.AddModelError("CTPS.CTPS", "O CTPS informado não é válido.");
+                    }
+                    else
+                    {
+                        bool ctpsExistente = await _context.Funcionario
+                        .AnyAsync(x => x.CTPS.CTPS == ctpsNumeros && x.Id != f.Id);
+
+                        if (ctpsExistente)
+                        {
+                            ModelState.AddModelError("CTPS.CTPS", "Este CPF já está cadastrado.");
+                        }
+                    }
+                }
+
+                if (f.CTPS.DataEmissao > hoje || f.CTPS.DataEmissao == null)
+                {
+                    ModelState.AddModelError("CTPS.DataEmissao", "A data de emissão do CTPS não é válida.");
+
+                    if (f.CTPS.DataEmissao == null)
+                    {
+                        ModelState.AddModelError("CTPS.DataEmissao", "A data de emissão do CTPS é obrigatório.");
+                    }
+
+                    else if (f.CTPS.DataEmissao > hoje)
+                    {
+                        ModelState.AddModelError("CTPS.DataEmissao", "A data de emissão do CTPS não é válida.");
                     }
                 }
             }
@@ -570,14 +700,14 @@ namespace FuncionarioCadastroWeb.Controllers
             }
 
             if (!ModelState.IsValid)
-
-                ViewBag.UFs = SvcSelectList.GetUFs(f.UF);
+            { 
+            ViewBag.UFs = SvcSelectList.GetUFs(f.UF);
             ViewBag.CTPSTipo = SvcSelectList.GetCTPSTipo(f?.CTPS?.Tipo);
             ViewBag.TipoCurso = SvcSelectList.GetTipoCurso();
             ViewBag.CNHCategorias = SvcSelectList.GetCNHCategorias(f?.CNH?.Categoria?.FirstOrDefault());
 
             return View(f);
-
+            }
             var funcionario = await _context.Funcionario
                 .Include(f => f.CNH)
                 .Include(f => f.CTPS)
@@ -591,7 +721,7 @@ namespace FuncionarioCadastroWeb.Controllers
             // Atualizar campos
             funcionario.Nome = f.Nome;
             funcionario.CPF = SvcFormatacao.RemoverMascara(f.CPF);
-            funcionario.DataNascimento = f.DataNascimento;
+            funcionario.DataNascimento = f.DataNascimento.Value;
             funcionario.UF = f.UF;
             funcionario.Profissao = f.Profissao;
 
@@ -614,12 +744,31 @@ namespace FuncionarioCadastroWeb.Controllers
                 // Atualiza 
                 funcionario.CTPS.CTPS = SvcFormatacao.RemoverMascara(f.CTPS.CTPS);
                 funcionario.CTPS.Tipo = f.CTPS.Tipo;
-                funcionario.CTPS.DataEmissao = f.CTPS.DataEmissao;
+                funcionario.CTPS.DataEmissao = f.CTPS.DataEmissao.Value;
 
             // Atualiza Cursos
             // Remove cursos antigos que não existem mais
             var cursosIds = f.Curso?.Where(c => c.Id != 0).Select(c => c.Id).ToList() ?? new List<int>();
             funcionario.Curso.RemoveAll(c => !cursosIds.Contains(c.Id));
+
+            //var cursosIds = await _context.Funcionario
+            //.FromSqlRaw(@"
+            //SELECT c."Id"
+            //FROM "Curso" AS c
+            //WHERE c."Id" <> 0
+            //  AND c."IdFuncionario" = @idFuncionario;
+            //").ToListAsync()
+
+            //var query = await _context.Funcionario
+            //    .FromSqlRaw(@"
+          //          DELETE FROM "Curso"
+          //          WHERE "IdFuncionario" = @idFuncionario
+          //          AND "Id" NOT IN(
+          //          SELECT c."Id"
+          //          FROM "Curso" AS c
+          //          WHERE c."Id" <> 0
+          //          AND c."IdFuncionario" = @idFuncionario
+            //").ToListAsync()
 
             // Atualiza ou adiciona cursos
             foreach (var c in f.Curso ?? new List<FuncionarioCursoViewModel>())
@@ -643,7 +792,7 @@ namespace FuncionarioCadastroWeb.Controllers
                 }
             }
 
-            // Atualiza Endereços (mesma lógica)
+            // Atualiza Endereços
             var enderecosIds = f.Endereco?.Where(e => e.Id != 0).Select(e => e.Id).ToList() ?? new List<int>();
             funcionario.Endereco.RemoveAll(e => !enderecosIds.Contains(e.Id));
 

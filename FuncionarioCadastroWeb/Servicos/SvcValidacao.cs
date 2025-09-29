@@ -1,4 +1,6 @@
-﻿namespace FuncionarioCadastroWeb.Servicos
+﻿using System.Text.RegularExpressions;
+
+namespace FuncionarioCadastroWeb.Servicos
 {
     public static class SvcValidacao
     {
@@ -35,40 +37,6 @@
             int digito2 = resto < 2 ? 0 : 11 - resto;
 
             return digito2 == (cpf[10] - '0');
-        }
-
-        // CNH
-        public static bool ValidarCNH(string cnh)
-        {
-            if (string.IsNullOrWhiteSpace(cnh))
-                return false;
-
-            cnh = new string(cnh.Where(char.IsDigit).ToArray());
-
-            if (cnh.Length != 11)
-                return false;
-
-            if (cnh.All(d => d == cnh[0]))
-                return false;
-
-            int soma = 0;
-            for (int i = 0, j = 9; i < 9; i++, j--)
-                soma += (cnh[i] - '0') * j;
-
-            int resto = soma % 11;
-            int digito1 = resto >= 10 ? 0 : resto;
-
-            if (digito1 != (cnh[9] - '0'))
-                return false;
-
-            soma = 0;
-            for (int i = 0, j = 1; i < 9; i++, j++)
-                soma += (cnh[i] - '0') * j;
-
-            resto = soma % 11;
-            int digito2 = resto >= 10 ? 0 : resto;
-
-            return digito2 == (cnh[10] - '0');
         }
 
         // CEP

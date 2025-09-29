@@ -16,7 +16,7 @@ namespace FuncionarioCadastroWeb.ViewModels
         public string Nome { get; set; }
 
         [Required(ErrorMessage = "Data de Nascimento é obrigatório.")]
-        public DateTime DataNascimento { get; set; }
+        public DateTime? DataNascimento { get; set; }
 
         [Required(ErrorMessage = "O CPF é obrigatório.")]
         //[RegularExpression(@"\d{11}", ErrorMessage = "O CPF deve ter 11 dígitos.")]

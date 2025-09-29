@@ -13,7 +13,7 @@ namespace FuncionarioCadastroWeb.ViewModels
         public string Tipo { get; set; }
 
         [Required(ErrorMessage = "A data de emissão da CTPS é obrigatório.")]
-        public DateTime DataEmissao { get; set; }
+        public DateTime? DataEmissao { get; set; }
         //public FuncionarioViewModel Funcionario { get; set; }
     }
 }

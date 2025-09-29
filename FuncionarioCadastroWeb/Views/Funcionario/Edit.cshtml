@@ -25,12 +25,7 @@
 
     <div class="mb-3">
         <label asp-for="DataNascimento" class="form-label">Data de Nascimento</label>
-        <input asp-for="DataNascimento"
-               type="date"
-               class="form-control"
-               value="@( (Model?.DataNascimento != null && Model.DataNascimento != DateTime.MinValue)
-                                               ? Model.DataNascimento.ToString("yyyy-MM-dd")
-                                               : "" )" />
+        <input asp-for="DataNascimento" type="date" class="form-control"/>
         <span asp-validation-for="DataNascimento" class="text-danger"></span>
     </div>
 
@@ -104,12 +99,7 @@
 
     <div class="mb-3">
         <label asp-for="CTPS.DataEmissao" class="form-label">Data de Emissão</label>
-        <input asp-for="CTPS.DataEmissao"
-               type="date"
-               class="form-control"
-               value="@( (Model?.CTPS?.DataEmissao != null && Model.CTPS.DataEmissao != DateTime.MinValue)
-                                               ? Model.CTPS.DataEmissao.ToString("yyyy-MM-dd")
-                                               : "" )" />
+        <input asp-for="CTPS.DataEmissao" type="date" class="form-control" />
         <span asp-validation-for="CTPS.DataEmissao" class="text-danger"></span>
     </div>
 
